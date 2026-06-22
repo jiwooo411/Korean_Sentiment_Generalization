@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 30초 요약 (TL;DR)
+## 요약
 
 **질문 (Research Question).** "Public 리더보드에서 잘 나온 모델"이 정말 **처음 보는 데이터(hidden)** 에서도 잘 나오는가? 그리고 같은 과제에서 **sparse lexical(TF-IDF)** 과 **dense semantic(SentenceTransformer)** 표현 중 무엇이 더 일반화되는가?
 
@@ -146,7 +146,7 @@ Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이
 
 </details>
 
-### Error Analysis (요약)
+### Error Analysis
 
 튜닝보다 **오류 분석이 설계를 이끌었다**.
 
