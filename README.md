@@ -47,11 +47,6 @@
 
 이 질문은 추상적 호기심이 아니라 **직접 겪은 실패**에서 나왔다. Phase 1에서 Public LB 0.757(5위)로 제출한 모델이 Final Hidden에서 0.7522(9위)로 떨어졌다 — public 점수만 믿으면 안 된다는 것을 실증한 사건이고, 이후 모든 의사결정의 출발점이 되었다.
 
-<p align="center">
-  <img src="figures/fig1_public_hidden_shakeup.png" width="560" alt="Public to Hidden shakeup"><br>
-  <sub><b>Figure 2.</b> Phase 1 셰이크업 — Public LB <b>0.757 (5위)</b> 제출 모델이 Final Hidden에서 <b>0.7522 (9위)</b>로 하락. 리더보드 순위는 일반화를 보장하지 않는다.</sub>
-</p>
-
 ---
 
 ## 데이터 (Dataset)
