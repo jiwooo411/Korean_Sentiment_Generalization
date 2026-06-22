@@ -9,8 +9,8 @@
 
 
 <p align="center">
-  <img src="figures/fig1_public_hidden_shakeup.png" width="640" alt="Public to Hidden shakeup"><br>
-  <sub><b>Figure 1.</b> Phase 1 셰이크업 — Public LB <b>0.757 (5위)</b>로 제출한 모델이 Final Hidden에서 <b>0.7522 (9위)</b>로 하락. 리더보드 순위는 일반화를 보장하지 않는다 — 이 프로젝트의 출발점.</sub>
+  <img src="figures/fig0_improvement_journey.png" width="860" alt="Hidden 9위에서 3위로의 개선 여정"><br>
+  <sub><b>Figure 1.</b> Phase 1에서 Hidden <b>9위</b>를 기록한 뒤 Generalization Gap을 분석하고(Error Analysis · 5-fold OOF 재설계 · dense embedding 도입), Phase 2에서 Hidden <b>3위 (MCC 0.753970)</b> 달성. 리더보드 점수가 아니라 일반화 문제를 분석해 순위를 끌어올린 과정.</sub>
 </p>
 
 > 📦 **데이터 미포함.** NSMC 계열 원본(`public_train.csv` 16 MB / `public_test.csv` 5 MB)은 용량·대회 자료 특성상 저장소에 포함하지 않음. 코드·문서·그림·결과표만 공개. → [`data/README.md`](data/README.md)
@@ -42,6 +42,15 @@
 > **개인 외(out-of-sample) 신호** — "처음 보는 데이터(Hidden)에서도 점수가 유지되는가?"
 
 이 프로젝트는 후자를 **1순위 선택 기준**으로 삼는다. 그리고 표현(representation) 관점에서 보조 질문을 던진다 — **sparse lexical** 표현과 **dense semantic** 임베딩 중 무엇이 더 잘 일반화되는가?
+
+### 프로젝트 동기 (Project Motivation)
+
+이 질문은 추상적 호기심이 아니라 **직접 겪은 실패**에서 나왔다. Phase 1에서 Public LB 0.757(5위)로 제출한 모델이 Final Hidden에서 0.7522(9위)로 떨어졌다 — public 점수만 믿으면 안 된다는 것을 실증한 사건이고, 이후 모든 의사결정의 출발점이 되었다.
+
+<p align="center">
+  <img src="figures/fig1_public_hidden_shakeup.png" width="560" alt="Public to Hidden shakeup"><br>
+  <sub><b>Figure 2.</b> Phase 1 셰이크업 — Public LB <b>0.757 (5위)</b> 제출 모델이 Final Hidden에서 <b>0.7522 (9위)</b>로 하락. 리더보드 순위는 일반화를 보장하지 않는다.</sub>
+</p>
 
 ---
 
@@ -119,7 +128,7 @@ Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이
 
 <p align="center">
   <img src="figures/fig3_sparse_vs_dense.png" width="520" alt="sparse vs dense gain"><br>
-  <sub><b>Figure 2.</b> Drill-06 캐리오버 baseline(sparse TF-IDF) 0.665278 → dense 임베딩 stacking <b>0.753970</b>.</sub>
+  <sub><b>Figure 3.</b> Drill-06 캐리오버 baseline(sparse TF-IDF) 0.665278 → dense 임베딩 stacking <b>0.753970</b>.</sub>
 </p>
 
 <details>
@@ -128,10 +137,10 @@ Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이
 <br>
 
 <p align="center"><img src="figures/fig2_lb_evolution.png" width="560" alt="LB evolution"><br>
-<sub><b>Figure 3.</b> Phase 1 Public LB 0.733 → 0.757, 각 단계는 gap이 벌어지지 않을 때만 채택.</sub></p>
+<sub><b>Figure 4.</b> Phase 1 Public LB 0.733 → 0.757, 각 단계는 gap이 벌어지지 않을 때만 채택.</sub></p>
 
 <p align="center"><img src="figures/fig5_generalization_gap.png" width="640" alt="generalization gap diagnostic"><br>
-<sub><b>Figure 4.</b> Val vs Public LB — 검증 점수가 가장 높았던 두 실험(HistGBT, recal grid)이 가장 큰 <b>음의 gap</b>으로 폐기.</sub></p>
+<sub><b>Figure 5.</b> Val vs Public LB — 검증 점수가 가장 높았던 두 실험(HistGBT, recal grid)이 가장 큰 <b>음의 gap</b>으로 폐기.</sub></p>
 
 > 전체 14개 실험 로그: [`results/experiments_master.csv`](results/experiments_master.csv) · 폐기 실험 카드: [`docs/04`](docs/04_experiments_appendix.md).
 
@@ -154,7 +163,8 @@ Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이
 
 | 파일 | 내용 |
 |---|---|
-| [`fig1_public_hidden_shakeup.png`](figures/fig1_public_hidden_shakeup.png) | Public→Hidden 셰이크업 (Hero) |
+| [`fig0_improvement_journey.png`](figures/fig0_improvement_journey.png) | Hidden 9위 → 3위 개선 여정 (Hero) |
+| [`fig1_public_hidden_shakeup.png`](figures/fig1_public_hidden_shakeup.png) | Public→Hidden 셰이크업 (Project Motivation) |
 | [`fig3_sparse_vs_dense.png`](figures/fig3_sparse_vs_dense.png) | sparse vs dense 표현 이득 (+0.0887) |
 | [`fig2_lb_evolution.png`](figures/fig2_lb_evolution.png) | Phase 1 Public LB 발전 과정 |
 | [`fig5_generalization_gap.png`](figures/fig5_generalization_gap.png) | Val vs LB 일반화 격차 진단 |
@@ -227,7 +237,7 @@ jupyter notebook notebooks/phase2_embedding_stacking.ipynb # Phase 2 (GPU 필수
 ├── data/        # 📦 README만 — 원본 미포함 (출처·획득 안내)
 ├── notebooks/   # phase1_sklearn_stacking · phase2_embedding_stacking
 ├── docs/        # 01~09 심화 문서 (방법론·실험·일반화·교훈) + 색인
-├── figures/     # fig1~fig6 + social_preview
+├── figures/     # fig0(hero)~fig6 + social_preview
 └── results/     # experiments_master.csv · ensemble_3view_results.csv
 ```
 
