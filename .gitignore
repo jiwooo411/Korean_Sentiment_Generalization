@@ -1,0 +1,48 @@
+# ───────────────────────────────────────────────────────────
+# Public-portfolio .gitignore
+# Goal: the repo GitHub shows = README + docs + notebooks + figures
+#       + results + data pointer. Everything heavy/internal stays local.
+# ───────────────────────────────────────────────────────────
+
+# Raw experiment dump (1.5 GB) — curated subset lives in results/
+log/
+
+# Trained model artifacts (large binaries)
+*.pkl
+*.npy
+*.joblib
+
+# Raw competition data — see data/README.md for how to obtain
+public_train.csv
+public_test.csv
+data/*.csv
+data/*.tsv
+
+# Course-provided material (redistribution-restricted)
+student_guide.pdf
+
+# Redundant local working copies of the original notebooks
+# (clean versions are committed under notebooks/)
+final/
+drill06 final/
+
+# Internal drafts / superseded files (not for public view)
+README_PORTFOLIO.md
+docs/_design/
+docs/README_ko_legacy.md
+
+# Duplicate (canonical copy lives in results/)
+docs/experiments_master.csv
+
+# Session scratch / verification artifacts
+__perm_test.txt
+_gitcheck/
+__mvtest*
+
+# Python / notebook cruft
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+env/

@@ -1,0 +1,16 @@
+# Phase 1 (sklearn-only constraint)
+scikit-learn>=1.3
+pandas>=2.0
+numpy>=1.24
+
+# Korean morphological analysis (Phase 1 preprocessing)
+pecab>=1.0.8
+koreanize-matplotlib>=0.1.1
+
+# Phase 2 (constraint lifted — dense embeddings, GPU recommended)
+sentence-transformers>=2.2
+torch>=2.0
+
+# Plotting / reproducibility
+matplotlib>=3.7
+joblib>=1.3
