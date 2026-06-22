@@ -170,22 +170,6 @@ Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이
 
 ---
 
-## 내 기여 (My Contributions)
-
-> 개인 프로젝트(중간고사 + 개인 확장). 아래는 **면접에서 방어 가능한** 범위로 한정했고, 각 항목은 저장소의 노트북·결과와 연결된다.
-
-| 영역 | README/CV에 쓸 수 있는 표현 | 면접에서 설명 가능한 내용 |
-|---|---|---|
-| 문제 정의 | 단순 분류를 일반화 격차 관리 문제로 재정의 | 왜 Public≠Hidden인지, gap 부호가 왜 선택 기준인지 |
-| Feature engineering | 3-View TF-IDF + 감성 lexicon, 형태소 정책 결정 | blacklist > whitelist 이유(어미 정보 손실) |
-| 모델링 | discriminative × generative stacking 구성 | ensemble 다양성이 모델 클래스에서 오는 이유 |
-| 실험 설계 | 14개 실험(채택 5/폐기 9) CV·LB·gap 로깅 | HistGBT meta를 *왜* 폐기했는지(음의 gap) |
-| 확장 | SentenceTransformer + 5-fold OOF stacking | sparse→dense가 +0.0887을 만든 이유 |
-
-**정직한 경계 (Honest boundary).** 어떤 결과도 SOTA·프로덕션급으로 표현하지 않음 · Phase 1 순위(9/19)는 셰이크업 *후* 결과로 그대로 공개 · 폐기 실험 일부는 CV만 측정(hidden 미평가) · "first author / lead analyst" 같은 논문 직함은 코스 프로젝트라 사용하지 않음.
-
----
-
 ## 📂 한계 · 재현 (Limitations · Reproducibility)
 
 <details>
