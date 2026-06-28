@@ -1,5 +1,9 @@
-# Leaderboard Rank ≠ Generalization
-### 한국어 영화 리뷰 감성 분류 — Public→Hidden 일반화 격차(Generalization Gap)를 관리한 실험 로그
+# Korean Sentiment Classification
+### Leaderboard Rank ≠ Generalization
+
+**Public Leaderboard does not guarantee Hidden Generalization.**
+
+한국어 영화 리뷰 감성 분류에서 Public→Hidden 일반화 격차를 분석하고, 일반화 성능을 기준으로 모델을 선택한 실험 프로젝트
 
 ![Data](https://img.shields.io/badge/data-NSMC%20150K-blue)
 ![Task](https://img.shields.io/badge/task-binary%20sentiment-blueviolet)
@@ -7,66 +11,79 @@
 ![Method](https://img.shields.io/badge/method-TF--IDF%20→%20SentenceTransformer%20stacking-orange)
 ![Python](https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white)
 
-
 <p align="center">
-  <img src="figures/fig0_improvement_journey.png" width="860" alt="Hidden 9위에서 3위로의 개선 여정"><br>
-  <sub><b>Figure 1.</b> Phase 1에서 Hidden <b>9위</b>를 기록한 뒤 Generalization Gap을 분석하고(Error Analysis · 5-fold OOF 재설계 · dense embedding 도입), Phase 2에서 Hidden <b>3위 (MCC 0.753970)</b> 달성. 리더보드 점수가 아니라 일반화 문제를 분석해 순위를 끌어올린 과정.</sub>
+  <img src="figures/fig0_improvement_journey.png" width="820" alt="Hidden 9위에서 3위로의 개선 여정"><br>
+  <sub><b>Figure 1.</b> Phase 1 Hidden <b>9위</b> → 일반화 격차 분석(Error Analysis · 5-fold OOF 재설계 · dense embedding) → Phase 2 Hidden <b>3위 (MCC 0.753970)</b>. 리더보드 점수가 아니라 일반화 문제를 분석해 순위를 끌어올린 과정.</sub>
 </p>
 
-> 📦 **데이터 미포함.** NSMC 계열 원본(`public_train.csv` 16 MB / `public_test.csv` 5 MB)은 용량·대회 자료 특성상 저장소에 포함하지 않음. 코드·문서·그림·결과표만 공개. → [`data/README.md`](data/README.md)
+> 원본 데이터(NSMC, 약 21 MB)는 용량·대회 자료 특성상 미포함. 코드·문서·그림·결과표만 공개. → [`data/README.md`](data/README.md)
 
 ---
 
-## 요약
+## 30초 요약
 
-**질문 (Research Question).** "Public 리더보드에서 잘 나온 모델"이 정말 **처음 보는 데이터(hidden)** 에서도 잘 나오는가? 그리고 같은 과제에서 **sparse lexical(TF-IDF)** 과 **dense semantic(SentenceTransformer)** 표현 중 무엇이 더 일반화되는가?
+**질문.** Public 리더보드 상위 모델이 처음 보는 hidden 데이터에서도 유지되는가. 그리고 sparse(TF-IDF)와 dense(SentenceTransformer) 표현 중 무엇이 더 일반화되는가.
 
-**핵심 발견 (Key Findings).**
-- 📉 Public 0.757(5위) → Final **Hidden 0.7522(9위)** 셰이크업 — validation·public 점수는 hidden 일반화를 보장하지 않음.
-- 🧠 sparse → dense 전환으로 **동일 hidden 테스트 MCC +0.088692** (0.665278 → **0.753970**, Drill-06 **3/18**).
-- 🧪 검증 점수가 **더 높았던** 모델(HistGBT meta, Val 0.7748)도 **CV→Hidden gap이 음수면 폐기** → 14개 실험 중 9개 폐기·5개 채택.
+**핵심 발견.**
+- Public 0.757(5위) → Final Hidden 0.7522(9위) 셰이크업 — validation·public은 hidden을 보장하지 않음.
+- sparse → dense 전환으로 동일 hidden 테스트 **+0.088692** (0.665278 → **0.753970**, 3/18).
+- 검증 점수가 더 높아도 CV→Hidden gap이 음수면 폐기 — 14개 실험 중 9개 폐기·5개 채택.
 
-**내 역할 (My Role).** **개인 프로젝트.** 중간고사 과제(Phase 1) 수행 후 개인적으로 확장(Phase 2). 문제 정의·feature engineering·14개 실험 설계·stacking 아키텍처·일반화 분석 전 과정 수행.
+**내 역할.** 개인 프로젝트. 중간고사 과제(Phase 1) 후 개인 확장(Phase 2). 문제 정의·feature engineering·14개 실험 설계·stacking·일반화 분석 전 과정 수행.
 
-**방법 (Method).** NSMC 150K · `scikit-learn`-only 3-View TF-IDF × Complement NB → Augmented Stacking → (제약 해제) multilingual-e5 × KR-SBERT + 5-fold OOF stacking · 평가 지표 **MCC**.
+**방법.** NSMC 150K · 3-View TF-IDF × Complement NB → Augmented Stacking → (제약 해제) multilingual-e5 × KR-SBERT + 5-fold OOF stacking · 지표 MCC.
 
-<sub>📖 목차: [질문](#연구-질문-research-question) · [데이터](#데이터-dataset) · [방법론](#방법론-methodology) · [설계 의사결정](#설계-의사결정-design-decisions--why) · [결과](#주요-결과-key-results) · [그림](#그림-figures) · [내 기여](#내-기여-my-contributions) · [한계·재현](#-한계--재현-limitations--reproducibility) · [구조](#저장소-구조-repository-structure)</sub>
-
----
-
-## 연구 질문 (Research Question)
-
-대부분의 입문 감성분류 프로젝트는 **validation 점수 한 줄**로 끝난다. 그러나 실제 대회에서는 제출 시점에 보이는 **Public LB**와 최종 채점되는 **Hidden(Private) LB**가 다르고, 이 둘의 차이가 모델의 진짜 가치를 가른다.
-
-> **개인 내(in-sample) 신호** — "내가 본 데이터(CV·Public)에서 점수가 높은가?"
-> **개인 외(out-of-sample) 신호** — "처음 보는 데이터(Hidden)에서도 점수가 유지되는가?"
-
-이 프로젝트는 후자를 **1순위 선택 기준**으로 삼는다. 그리고 표현(representation) 관점에서 보조 질문을 던진다 — **sparse lexical** 표현과 **dense semantic** 임베딩 중 무엇이 더 잘 일반화되는가?
+**의미.** 이 프로젝트는 모델 성능을 높이는 것보다 **일반화 성능을 기준으로 의사결정을 내리는 실험 설계**를 목표로 했다.
 
 ---
 
-### 프로젝트 동기 (Project Motivation)
+## Why it matters
 
-이 질문은 추상적 호기심이 아니라 **직접 겪은 실패**에서 나왔다. Phase 1에서 Public LB 0.757(5위)로 제출한 모델이 Final Hidden에서 0.7522(9위)로 떨어졌다 — public 점수만 믿으면 안 된다는 것을 실증한 사건이고, 이후 모든 의사결정의 출발점이 되었다.
+Most sentiment classification projects focus on achieving higher validation or leaderboard scores.
+
+This project instead asks whether those gains survive on completely unseen hidden data.
+
+Rather than selecting the highest-scoring model, models were selected based on their ability to generalize beyond the observed data.
 
 ---
 
-## 데이터 (Dataset)
+## 동기 — 직접 겪은 셰이크업
+
+Phase 1에서 Public LB 0.757(5위)로 제출한 모델이 Final Hidden 0.7522(9위)로 하락. "public 점수만 믿으면 안 된다"를 실증한 사건이자 이후 모든 의사결정의 출발점. 이때부터 **CV→Hidden gap 부호를 1순위 선택 기준**으로 삼음.
+
+<p align="center">
+  <img src="figures/fig1_public_hidden_shakeup.png" width="520" alt="Public to Hidden shakeup"><br>
+  <sub><b>Figure 2.</b> Public LB <b>0.757 (5위)</b> 제출 모델이 Final Hidden <b>0.7522 (9위)</b>로 하락. 리더보드 순위는 일반화를 보장하지 않음.</sub>
+</p>
+
+---
+
+## 데이터
 
 | 항목 | 내용 |
 |---|---|
 | 자료원 | NSMC 계열 (Naver Sentiment Movie Corpus) — 한국어 영화 리뷰 |
-| 규모 | train **149,995** / test **49,997** |
-| 컬럼 | `row_id`, `text`, `label` |
-| 클래스 균형 | NEGATIVE 75,170 / POSITIVE 74,825 (≈ **50.1% / 49.9%**) |
-| 텍스트 특성 | 짧고 noisy한 구어체 — 반복 자모(`ㅋㅋㅋ`), 이모티콘(`ㅠㅠ`), 띄어쓰기 오류, **부정·어미 의존** |
-| 평가 단위 | 리뷰 1건당 1개 라벨 예측 |
+| 규모 | train 149,995 / test 49,997, 클래스 ≈ 50.1% / 49.9% |
+| 텍스트 특성 | 짧고 noisy한 구어체 — 반복 자모(`ㅋㅋㅋ`), 이모티콘(`ㅠㅠ`), 띄어쓰기 오류, 부정·어미 의존 |
 
-> ⚠️ 클래스가 거의 균형이라 accuracy도 쓸 수 있어 보이지만, 평가 지표는 **MCC** — 이유는 [설계 의사결정](#설계-의사결정-design-decisions--why) 참조.
+> 클래스가 균형이라 accuracy도 쓸 수 있어 보이지만 지표는 MCC. 이유는 [설계 의사결정](#설계-의사결정) 참조. 컬럼·획득 안내: [`data/README.md`](data/README.md).
 
 ---
 
-## 방법론 (Methodology)
+## 기술 스택
+
+| 구분 | 도구 |
+|---|---|
+| 언어 | Python 3.11 |
+| 전통 ML | scikit-learn — LogReg ElasticNet · Complement NB · Stacking |
+| 임베딩 | sentence-transformers (multilingual-e5 · KR-SBERT), PyTorch |
+| 한국어 처리 | PeCab (형태소 정제) |
+| 평가 | MCC — 모델 선택·threshold 결정 기준 |
+| 시각화 | matplotlib · koreanize-matplotlib |
+
+---
+
+## 방법론
 
 ```mermaid
 flowchart TD
@@ -83,115 +100,113 @@ flowchart TD
     O --> P2[Phase 2<br/>Hidden 0.753970 · 3/18]
 ```
 
-- **Phase 1 (sklearn-only).** 직교적 표현 3종(lexical 표면 · 문법 구조 · 의미 극성)과 이질적 모델 클래스(discriminative × generative)를 stacking으로 결합.
-- **Phase 2 (제약 해제).** dense 임베딩 2종을 추가하고 5-fold OOF로 단일 split 신뢰성을 보강, threshold는 OOF에서만 sweep.
+- **Phase 1 (sklearn-only).** 직교 표현 3종(표면·구조·극성)과 이질 모델 클래스(discriminative × generative)를 stacking으로 결합.
+- **Phase 2 (제약 해제).** dense 임베딩 2종 추가, 5-fold OOF로 단일 split 보강, threshold는 OOF에서만 sweep.
 
 > 단계별 구현·하이퍼파라미터 근거: [`docs/02_methodology.md`](docs/02_methodology.md).
 
 ---
 
-## 설계 의사결정 (Design Decisions — Why)
+## 설계 의사결정
 
-> 이 프로젝트의 핵심은 점수가 아니라 **"왜 그렇게 결정했는가"**. 모든 답은 실험 로그([`results/experiments_master.csv`](results/experiments_master.csv))·노트북·폐기 실험 기록([`docs/04`](docs/04_experiments_appendix.md))에 근거.
+> 핵심은 점수가 아니라 "왜 그렇게 결정했는가". 모든 결정은 실험 로그·폐기 실험 기록에 근거.
 
-**Q1. 왜 MCC를 평가 지표로 썼는가?**
-대회 공식 지표가 MCC였고, MCC는 confusion matrix 4칸(TP·TN·FP·FN)을 모두 반영하는 **Φ-coefficient**다. +1에 가까우려면 네 칸이 동시에 좋아야 하므로 두 클래스·두 오류 유형을 **대칭적으로** 평가한다.
+| 결정 | 이유 |
+|---|---|
+| 지표를 MCC로 | 대회 공식 지표이자 confusion matrix 4칸을 대칭 평가. accuracy는 균형 데이터에서도 편향 예측에 둔감 → 모델·threshold 선택을 전부 OOF MCC로 수행 |
+| 3-View TF-IDF 구성 | morph 단독 baseline이 Public 0.733에서 정체 → word·char_wb·감성 lexicon 직교 표현으로 분리, **0.750 (+0.017)** |
+| Complement NB 추가 | 다양성은 옵티마이저 변형이 아니라 모델 클래스 차이에서 발생 → discriminative에 generative 결합, **0.753 (+0.003)** |
+| linear meta 채택 | HistGBT meta는 Val 0.7748로 최고였으나 LB 0.750(음의 gap, overfit) → 단순 LogReg L2 선택 |
+| gap 부호를 선택 기준으로 | Public 0.757→Hidden 0.7522 셰이크업 경험 → 검증 점수 대신 CV→Hidden gap 부호로 채택 판단, Phase 2를 5-fold OOF로 재설계 |
 
-**Q2. 왜 Accuracy를 주요 지표로 쓰지 않았는가?**
-클래스가 ≈50:50이라 accuracy도 그럴듯해 보이지만, accuracy는 **한쪽으로 치우친 예측을 둔감하게** 넘기고 오류 유형을 비대칭 취급한다. MCC는 같은 상황에서 더 strict하며, 무엇보다 **대회 채점이 MCC**였다. 그래서 모델 선택·threshold 결정을 전부 **OOF 예측의 MCC**로 했다.
-
-**Q3. 왜 3-View TF-IDF를 만들었는가?**
-형태소 단독(morph-only) TF-IDF baseline이 **Public 0.733에서 정체**했다. 다양성을 **직교적 표현**에서 확보하기 위해 세 관점을 분리했다 — `word`(내용어·부정쌍), `char_wb`(오타·자모 반복·띄어쓰기 오류), `sentiment lexicon`(명시적 극성). 결과 **0.750 (+0.017)**.
-
-**Q4. 왜 Complement NB를 포함했는가?**
-SGD 변형 실험에서 배운 것 — *ensemble 이득은 옵티마이저 변형이 아니라 **모델 클래스 차이**에서 온다*(`average=False` SGD는 LogReg를 재현할 뿐이었다). 그래서 discriminative LogReg에 **generative** Complement NB를 더해 직교적 오류를 만들었다. 결과 **0.753 (+0.003)**.
-
-**Q5. 왜 일부 고성능 모델을 최종 선택하지 않았는가?**
-HistGBT meta learner는 **Val 0.7748**로 가장 높았지만 **LB 0.750** — 30K×16 메타데이터에서 명백한 **음의 gap(overfit)**. recalibration grid(132조합)도 Val 0.7745 / LB ≤0.753. 검증 점수가 아니라 **CV→Hidden gap의 부호**가 선택 기준이므로 단순한 **linear meta(LogReg L2)** 를 채택했다.
-
-**Q6. 왜 Generalization Gap 분석을 수행했는가?**
-Phase 1에서 Public 0.757(5위)이 Hidden 0.7522(9위)로 떨어지는 **셰이크업을 직접 겪었기 때문**. 이 사건이 "validation·public ≠ hidden"을 실증했고, 이후 gap 부호를 1순위 기준으로 삼아 Phase 2를 **5-fold OOF**로 재설계했다.
+> 채택 실험 5개·폐기 실험 9개 전체 근거: [`docs/03`](docs/03_experiments_main.md) · [`docs/04`](docs/04_experiments_appendix.md) · [`docs/05`](docs/05_generalization_analysis.md).
 
 ---
 
-## 주요 결과 (Key Results)
+## 주요 결과
 
 | Phase | 트랙 | Public LB | Final Hidden MCC | 순위 |
 |---|---|---|---|---|
-| 1 (중간고사) | sklearn-only stacking | 0.757 (public 5위) | **0.7522** | **9 / 19** |
-| 2 (Drill-06 확장) | TF-IDF × e5 × KR-SBERT | — | **0.753970** | **3 / 18** |
-
-**sparse → dense 표현 이득** — 동일 hidden 테스트에서 +0.088692.
+| 1 (중간고사) | sklearn-only stacking | 0.757 (5위) | **0.7522** | **9 / 19** |
+| 2 (확장) | TF-IDF × e5 × KR-SBERT | — | **0.753970** | **3 / 18** |
 
 <p align="center">
-  <img src="figures/fig3_sparse_vs_dense.png" width="520" alt="sparse vs dense gain"><br>
-  <sub><b>Figure 3.</b> Drill-06 캐리오버 baseline(sparse TF-IDF) 0.665278 → dense 임베딩 stacking <b>0.753970</b>.</sub>
+  <img src="figures/fig3_sparse_vs_dense.png" width="480" alt="sparse vs dense gain"><br>
+  <sub><b>Figure 3.</b> sparse TF-IDF baseline 0.665278 → dense 임베딩 stacking <b>0.753970</b> (동일 hidden, +0.088692).</sub>
 </p>
 
 <details>
-<summary><b>모델 발전 과정 · 일반화 격차 진단 (그림 펼치기)</b></summary>
+<summary><b>모델 발전·일반화 격차 진단 그림</b></summary>
 
 <br>
 
 <p align="center"><img src="figures/fig2_lb_evolution.png" width="560" alt="LB evolution"><br>
 <sub><b>Figure 4.</b> Phase 1 Public LB 0.733 → 0.757, 각 단계는 gap이 벌어지지 않을 때만 채택.</sub></p>
 
-<p align="center"><img src="figures/fig5_generalization_gap.png" width="640" alt="generalization gap diagnostic"><br>
-<sub><b>Figure 5.</b> Val vs Public LB — 검증 점수가 가장 높았던 두 실험(HistGBT, recal grid)이 가장 큰 <b>음의 gap</b>으로 폐기.</sub></p>
+<p align="center"><img src="figures/fig5_generalization_gap.png" width="620" alt="generalization gap diagnostic"><br>
+<sub><b>Figure 5.</b> Val vs Public LB — 검증 점수가 가장 높았던 두 실험(HistGBT, recal grid)이 가장 큰 음의 gap으로 폐기.</sub></p>
 
-> 전체 14개 실험 로그: [`results/experiments_master.csv`](results/experiments_master.csv) · 폐기 실험 카드: [`docs/04`](docs/04_experiments_appendix.md).
+> 그림별 설명: [`figures/README.md`](figures/README.md) · 전체 실험 로그: [`results/experiments_master.csv`](results/experiments_master.csv).
 
 </details>
 
-### Error Analysis
+**Error Analysis가 설계를 주도.**
 
-튜닝보다 **오류 분석이 설계를 이끌었다**.
-
-- **과전처리** — POS 화이트리스트가 어미(시제·존칭)를 제거 → 블랙리스트 정제로 전환.
-- **솔버 등가 함정** — `average=False` SGD는 LogReg 재현 → 다양성은 모델 클래스에서.
-- **메타 과적합** — HistGBT meta Val 0.7748 / LB 0.750(음의 gap) → linear meta.
-- **Threshold zero-sum** — calibrated 모델은 0.5 유지, sweep은 OOF에서만.
-
-> 전체 일반화·오류 분석: [`docs/05_generalization_analysis.md`](docs/05_generalization_analysis.md).
-
----
-
-## 그림 (Figures)
-
-| 파일 | 내용 |
+| 발견한 문제 | 개선 |
 |---|---|
-| [`fig0_improvement_journey.png`](figures/fig0_improvement_journey.png) | Hidden 9위 → 3위 개선 여정 (Hero) |
-| [`fig1_public_hidden_shakeup.png`](figures/fig1_public_hidden_shakeup.png) | Public→Hidden 셰이크업 (Project Motivation) |
-| [`fig3_sparse_vs_dense.png`](figures/fig3_sparse_vs_dense.png) | sparse vs dense 표현 이득 (+0.0887) |
-| [`fig2_lb_evolution.png`](figures/fig2_lb_evolution.png) | Phase 1 Public LB 발전 과정 |
-| [`fig5_generalization_gap.png`](figures/fig5_generalization_gap.png) | Val vs LB 일반화 격차 진단 |
-| [`fig4_pipeline.png`](figures/fig4_pipeline.png) | 3-View → 4-Model → Stacking 파이프라인 |
-| [`fig6_threshold_curve.png`](figures/fig6_threshold_curve.png) | Phase 2 OOF MCC-optimal threshold sweep |
+| 형태소 whitelist가 어미 정보를 제거 | blacklist 기반 전처리 |
+| Solver 변경은 다양성을 만들지 못함 | 모델 클래스 다양성 확보 (discriminative × generative) |
+| HistGBT meta overfitting (Val 최고, LB 음의 gap) | Linear meta (LogReg L2) 채택 |
+| Validation 점수 기준 선택은 셰이크업에 취약 | OOF 기반 threshold·gap 부호로 선택 |
+
+상세: [`docs/05`](docs/05_generalization_analysis.md).
 
 ---
 
-## 📂 한계 · 재현 (Limitations · Reproducibility)
+## 개인 프로젝트
+
+> 개인 프로젝트
+
+| 영역 | 주요 |
+|---|---|
+| Problem Definition | 단순 분류를 Generalization Gap 관리로 재정의 |
+| Feature Engineering | 3-View TF-IDF + Sentiment Lexicon, blacklist 기반 전처리 |
+| Modeling | Discriminative × Generative Stacking |
+| Experiment Design | 14개 실험 설계 및 비교 (채택 5 · 폐기 9) |
+| Generalization Analysis | CV→Hidden Gap 기반 모델 선택, sparse→dense +0.0887 |
+
+**정직한 경계.** 어떤 결과도 SOTA·프로덕션급으로 표현하지 않음 · Phase 1 순위(9/19)는 셰이크업 후 결과 그대로 공개 · 폐기 실험 일부는 CV만 측정 · 논문 직함은 코스 프로젝트라 미사용.
+
+---
+
+## Key Takeaway
+
+이 프로젝트를 통해 얻은 가장 큰 교훈은 **가장 높은 Validation 점수가 항상 가장 좋은 모델을 의미하지는 않는다**는 점입니다.
+
+모델 선택 기준을 Validation 성능에서 **일반화 성능(CV→Hidden Gap)**으로 전환함으로써, 처음 보는 데이터에서도 안정적으로 동작하는 모델을 선택할 수 있었습니다.
+
+---
 
 <details>
-<summary><b>한계 (Limitations)</b></summary>
+<summary><b>한계</b></summary>
 
 <br>
 
-1. **단일 split (Phase 1)** — 단일 train/val split 신뢰성 한계 → Phase 2에서 5-fold OOF로 보완.
-2. **부분 측정** — 폐기 실험 일부는 비용 제약으로 CV만 측정, hidden 미평가.
-3. **유의성 미검정** — 점수 차이의 통계적 유의성·신뢰구간 미수행.
-4. **fine-tuning 미비교** — frozen embedding stacking vs LoRA 등 PEFT 비교 미수행 → [향후 과제](docs/07_lessons_learned.md).
-5. **코스 범위** — 배포·서빙·실시간 추론은 대상 외.
+1. 단일 split(Phase 1) 신뢰성 한계 → Phase 2에서 5-fold OOF로 보완.
+2. 폐기 실험 일부는 비용 제약으로 CV만 측정, hidden 미평가.
+3. 점수 차이의 통계적 유의성·신뢰구간 미수행.
+4. frozen embedding stacking vs LoRA 등 PEFT 비교 미수행 → [향후 과제](docs/07_lessons_learned.md).
+5. 배포·서빙·실시간 추론은 코스 범위 외.
 
 </details>
 
 <details>
-<summary><b>재현 (Reproducibility)</b></summary>
+<summary><b>재현</b></summary>
 
 <br>
 
 ```bash
-git clone https://github.com/USERNAME/korean-sentiment-generalization.git
+git clone https://github.com/jiwooo411/korean-sentiment-generalization.git
 cd korean-sentiment-generalization
 python -m venv .venv && source .venv/bin/activate   # Python 3.11
 pip install -r requirements.txt
@@ -200,8 +215,7 @@ jupyter notebook notebooks/phase1_sklearn_stacking.ipynb   # Phase 1 (CPU OK, Co
 jupyter notebook notebooks/phase2_embedding_stacking.ipynb # Phase 2 (GPU 필수)
 ```
 
-- `SEED=42` 고정 · fold별 vectorizer/scaler 재fit(leakage 차단) · threshold sweep은 OOF 한정.
-- 전체 체크리스트: [`docs/09_repro_checklist.md`](docs/09_repro_checklist.md).
+`SEED=42` 고정 · fold별 vectorizer/scaler 재fit(leakage 차단) · threshold sweep은 OOF 한정.
 
 [![Open Phase 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jiwooo411/korean-sentiment-generalization/blob/main/notebooks/phase2_embedding_stacking.ipynb)
 
@@ -209,31 +223,19 @@ jupyter notebook notebooks/phase2_embedding_stacking.ipynb # Phase 2 (GPU 필수
 
 ---
 
-## 저장소 구조 (Repository Structure)
+## 저장소 구조
 
 ```
 .
-├── README.md    
-├── LICENSE · requirements.txt · .gitignore
-├── data/        # 📦 README만 — 원본 미포함 (출처·획득 안내)
+├── README.md · CONTRIBUTING.md · LICENSE · requirements.txt · .gitignore
+├── data/        # README만 — 원본 미포함 (출처·획득 안내)
 ├── notebooks/   # phase1_sklearn_stacking · phase2_embedding_stacking
-├── docs/        # 01~09 심화 문서 (방법론·실험·일반화·교훈) + 색인
+├── docs/        # 01~07 심화 문서 (방법론·실험·일반화·교훈) + 색인
 ├── figures/     # fig0(hero)~fig6 + social_preview
 └── results/     # experiments_master.csv · ensemble_3view_results.csv
 ```
 
-> 대용량·내부 파일(`log/` 1.5 GB, `*.pkl`, 임베딩 `*.npy`, 원본 데이터, 강의 자료)은 `.gitignore`로 공개 트리에서 제외 — 로컬 보존.
-> 본 프로젝트는 **노트북 기반**이므로 KYHPS식 `src/`·`scripts/` 분리 대신 재현 가능한 노트북 2개를 정본으로 둠(테스트 불가한 추출 코드를 만들지 않기 위함).
-
----
-
-## 참고문헌 (References)
-
-1. Matthews, B. W. (1975). Comparison of the predicted and observed secondary structure of T4 phage lysozyme. *Biochimica et Biophysica Acta*, 405(2), 442–451. *(MCC)*
-2. Zou, H., & Hastie, T. (2005). Regularization and variable selection via the elastic net. *JRSS-B*, 67(2), 301–320.
-3. Rennie, J. D. M., Shih, L., Teevan, J., & Karger, D. R. (2003). Tackling the poor assumptions of naive Bayes text classifiers. *ICML*. *(Complement NB)*
-4. Wang, L., et al. (2022). Text embeddings by weakly-supervised contrastive pre-training. *arXiv:2212.03533*. *(multilingual-e5)*
-5. Park, E. (NSMC). Naver Sentiment Movie Corpus. <https://github.com/e9t/nsmc>
+> 대용량·내부 파일(`log/` 1.5 GB, `*.pkl`, 임베딩 `*.npy`, 원본 데이터)은 `.gitignore`로 제외. 노트북 기반 프로젝트라 `src/`·`scripts/` 분리 대신 재현 가능한 노트북 2개를 정본으로 둠.
 
 ---
 

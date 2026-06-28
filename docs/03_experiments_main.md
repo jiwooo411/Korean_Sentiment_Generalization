@@ -191,7 +191,7 @@ TF-IDF 피처 공간 안에서의 다양성은 충분히 활용됨.
 
 ---
 
-## M4. Augmented Stacking — 12 Meta Features + LogReg L2 ⭐
+## M4. Augmented Stacking — 12 Meta Features + LogReg L2
 
 ### 가설
 
@@ -291,7 +291,7 @@ sparse→dense 확장으로 OOF 기반 τ* sweep, 목표 LB 0.770+.
 | M1 Baseline | LogReg(saga) ElasticNet, morph 단독 | 0.7402 (CV) | 0.733 | — | +0.007 | ✓ |
 | M2 3-View | +char/sentiment view, soft voting | 0.7456 | 0.750 | +0.017 | 양호 | ✓ |
 | M3 4-Model | +ComplementNB (generative) | 0.7456 | 0.753 | +0.003 | 양호 | ✓ |
-| **M4 Stacking** | **+12 meta feat, LogReg L2 meta** | **0.7456** | **0.757** | **+0.004** | **+0.011** | **✓ ⭐** |
+| **M4 Stacking** | **+12 meta feat, LogReg L2 meta** | **0.7456** | **0.757** | **+0.004** | **+0.011** | **✓ ** |
 | M5 Drill-06 | +e5+KR-SBERT, 5-fold OOF | (측정값 없음) | 0.770+ 목표 | — | — | 가이드 해제 |
 
 **폐기 실험 (요약):**

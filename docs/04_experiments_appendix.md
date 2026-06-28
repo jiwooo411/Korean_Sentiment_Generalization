@@ -281,7 +281,7 @@ meta_gbt.fit(
 | 지표 | 값 |
 |---|---|
 | Val MCC | **0.7748** (+0.029 vs LogReg meta) |
-| LB MCC | **0.750** (−0.007 vs LogReg meta) ⚠ |
+| LB MCC | **0.750** (−0.007 vs LogReg meta)  |
 | Val Recall | 0.842 (−0.031 손상) |
 | Val Precision | 0.902 (+0.018) |
 | CV-LB Gap | **−0.025** (적신호) |

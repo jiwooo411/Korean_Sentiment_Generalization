@@ -219,7 +219,7 @@ FP=3,381 / FN=2,882 비율이 거의 1:1 → 평형 상태. threshold 이동이 
 | Baseline LogReg(saga) | 0.7402 (CV) | 0.733 | +0.007 | ✓ | 양호 — gap 소폭 양수 |
 | 3-View Ensemble | — | 0.750 | — | ✓ | 양호 — Val 미측정, LB 향상 |
 | 4-Model (+ComplementNB) | — | 0.753 | — | ✓ | 양호 — 다양성 기반 안정 향상 |
-| Augmented Stacking (LogReg meta) | 0.7456 | **0.757** | +0.011 | ✓ ⭐ | 최우수 — gap 양수, LB 최고 |
+| Augmented Stacking (LogReg meta) | 0.7456 | **0.757** | +0.011 | ✓  | 최우수 — gap 양수, LB 최고 |
 | HistGBT meta (1.25) | 0.7748 | 0.750 | **−0.025** | ✗ | 과적합 — gap 음수 |
 | HistGBT meta (1.15) | 0.7745 | 0.753 | **−0.022** | ✗ | 과적합 — gap 음수 |
 | Threshold grid (best) | 0.7745 | 0.753 | −0.022 | ✗ | val 과적합 |
