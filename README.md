@@ -37,17 +37,17 @@
 
 ---
 
-## Why it matters
+## 왜 중요한가?
 
-Most sentiment classification projects focus on achieving higher validation or leaderboard scores.
+대부분의 감성분류 프로젝트는 **Validation 점수나 Public Leaderboard 순위 향상**에 초점.
 
-This project instead asks whether those gains survive on completely unseen hidden data.
+이 프로젝트는 **처음 보는 Hidden 데이터에서의 일반화 성능 검증**을 중심으로 설계.
 
-Rather than selecting the highest-scoring model, models were selected based on their ability to generalize beyond the observed data.
+가장 높은 점수가 아니라 **일반화 성능을 기준으로 모델을 선택하는 실험 설계와 의사결정 과정 제시**가 핵심.
 
 ---
 
-## 동기 — 직접 겪은 셰이크업
+## 동기
 
 Phase 1에서 Public LB 0.757(5위)로 제출한 모델이 Final Hidden 0.7522(9위)로 하락. "public 점수만 믿으면 안 된다"를 실증한 사건이자 이후 모든 의사결정의 출발점. 이때부터 **CV→Hidden gap 부호를 1순위 선택 기준**으로 삼음.
 
